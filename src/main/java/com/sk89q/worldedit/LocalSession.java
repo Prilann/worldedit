@@ -125,6 +125,12 @@ public class LocalSession {
         while (historyPointer < history.size()) {
             history.remove(historyPointer);
         }
+
+        final Mask editSessionMask = editSession.getMask();
+        if (editSessionMask != null) {
+            editSession.setMask(editSessionMask.getPermanentMask());
+        }
+
         history.add(editSession);
         while (history.size() > MAX_HISTORY_SIZE) {
             history.remove(0);
@@ -169,6 +175,7 @@ public class LocalSession {
                     .getEditSession(editSession.getWorld(), -1, newBlockBag, player);
             newEditSession.enableQueue();
             newEditSession.setFastMode(fastMode);
+            newEditSession.setMask(editSession.getMask());
             editSession.redo(newEditSession);
             ++historyPointer;
             return editSession;
