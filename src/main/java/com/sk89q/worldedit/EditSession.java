@@ -600,7 +600,6 @@ public class EditSession {
      * @param z
      * @param minY minimal height
      * @param maxY maximal height
-     * @param naturalOnly look at natural blocks or all blocks
      * @return height of highest block found or 'minY'
      */
     public int getHighestTerrainBlock(int x, int z, int minY, int maxY) {
@@ -621,7 +620,8 @@ public class EditSession {
         for (int y = maxY; y >= minY; --y) {
             Vector pt = new Vector(x, y, z);
             int id = getBlockType(pt);
-            if (naturalOnly ? BlockType.isNaturalTerrainBlock(id) : !BlockType.canPassThrough(id)) {
+            int data = getBlockData(pt);
+            if (naturalOnly ? BlockType.isNaturalTerrainBlock(id, data) : !BlockType.canPassThrough(id, data)) {
                 return y;
             }
         }
@@ -1577,7 +1577,7 @@ public class EditSession {
      * Make walls of the region (as if it was a cuboid if it's not).
      *
      * @param region
-     * @param block
+     * @param pattern
      * @return number of blocks affected
      * @throws MaxChangedBlocksException
      */
@@ -2481,6 +2481,7 @@ public class EditSession {
                 loop: for (int y = world.getMaxY(); y >= 1; --y) {
                     final Vector pt = new Vector(x, y, z);
                     final int id = getBlockType(pt);
+                    final int data = getBlockData(pt);
 
                     switch (id) {
                     case BlockID.DIRT:
@@ -2498,7 +2499,7 @@ public class EditSession {
 
                     default:
                         // ...and all non-passable blocks
-                        if (!BlockType.canPassThrough(id)) {
+                        if (!BlockType.canPassThrough(id, data)) {
                             break loop;
                         }
                     }
@@ -2878,7 +2879,7 @@ public class EditSession {
         return affected;
     }
 
-    Vector[] recurseDirections = {
+    private static final Vector[] recurseDirections = {
         PlayerDirection.NORTH.vector(),
         PlayerDirection.EAST.vector(),
         PlayerDirection.SOUTH.vector(),
@@ -2972,7 +2973,7 @@ public class EditSession {
 
         while (!queue.isEmpty()) {
             final BlockVector current = queue.removeFirst();
-            if (!BlockType.canPassThrough(getBlockType(current))) {
+            if (!BlockType.canPassThrough(getBlockType(current), getBlockData(current))) {
                 continue;
             }
 
